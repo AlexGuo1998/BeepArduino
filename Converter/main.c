@@ -25,8 +25,8 @@ void printHelp(void) {
 		"Options:\n"
 		"-h\t\tshow this help\n"
 		"-i infile\tmusic scope to load\n"
-		"\t\t(up to " STR(TRACK_MAX) " tracks are supported)"
-		//"-p\t\tplay with inpout32\n"
+		//"\t\t(up to " STR(TRACK_MAX) " tracks are supported)\n"
+		"\t\t(only 1 track is supported in this version)\n"
 		"\n"
 		"Project website: <https://github.com/AlexGuo1998/BeepArduino>\n"
 	);

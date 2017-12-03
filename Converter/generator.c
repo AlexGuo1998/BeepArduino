@@ -1,18 +1,25 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 
-//#define BRACKET_NEWLINE
+//Undim the following line to use space instead of tab
+//#define USE_SPACE_IN_INDENT
+
+//Undim the following line to use 2 space chars in indentation
+//#define INDENT_2_CHARS
 
 #include <stdio.h>
 #include <stdbool.h>
 #include <malloc.h>
 #include <stdint.h>
 
-#ifdef BRACKET_NEWLINE
-#define BRACKET_NEWLINE "\n"
-#else // BRACKET_NEWLINE
-#define BRACKET_NEWLINE " "
-#endif // BRACKET_NEWLINE
-
+#ifdef USE_SPACE_IN_INDENT
+	#ifdef INDENT_2_CHARS
+		#define INDENT_STR "  "
+	#else // !INDENT_2_CHARS
+		#define INDENT_STR "    "
+	#endif // INDENT_2_CHARS
+#else // !USE_SPACE_IN_INDENT
+	#define INDENT_STR "\t"
+#endif // USE_SPACE_IN_INDENT
 
 #define FREQINDEX_TYPE char
 #define MAX_FREQCOUNT sizeof(FREQINDEX_TYPE) << 8
@@ -25,7 +32,7 @@
 
 static void printNumbers(FILE *pf, const char *format, int blanksize, size_t numperline, const void *data, size_t datacount, size_t datasize) {
 	for (size_t i = 0; i < datacount; i++) {
-		if (i % numperline == 0) fputs("\n\t", pf);
+		if (i % numperline == 0) fputs("\n" INDENT_STR, pf);
 		uint64_t p = *(uint64_t *)&((char *)data)[i * datasize];
 		p &= (1Ui64 << (datasize * 8)) - 1;
 		int ret = fprintf(pf, format, p);
@@ -149,15 +156,21 @@ bool output(const char *filename, const unsigned int *freqlist, const unsigned l
 	printNumbers(pf, "%hhu,", 3, 32, freqindex, notecount, sizeof(FREQINDEX_TYPE));
 	fprintf(pf, "\n};\n");
 
-	fprintf(pf, "\nvoid setup()" BRACKET_NEWLINE "{\n\n}\n\n");
+	fprintf(pf, "\nvoid setup() {\n\n}\n\n");
 	
 	fprintf(pf,
-		"void loop()" BRACKET_NEWLINE "{\n"
-		"	for (int i = 0; i < sizeof(beeptime) / sizeof(beeptime[0]); i++) {\n"
-		"		tone(PIN_BEEP, freqmap[pgm_read_byte_near(notelist + i)], timemap[pgm_read_byte_near(beeptime + i)]);\n"
-		"		delay(timemap[pgm_read_byte_near(sleeptime + i)]);\n"
-		"	}\n"
-		"	while (true) delay(1000);\n"
+		"void loop() {\n"
+		INDENT_STR "for (int i = 0; i < sizeof(beeptime) / sizeof(beeptime[0]); i++) {\n"
+		INDENT_STR INDENT_STR "unsigned int beeptimenow = timemap[pgm_read_byte_near(beeptime + i)]\n"
+		INDENT_STR INDENT_STR "unsigned int sleeptimenow = timemap[pgm_read_byte_near(sleeptime + i)]\n"
+		INDENT_STR INDENT_STR "if (beeptimenow >= sleeptimenow) {\n"
+		INDENT_STR INDENT_STR INDENT_STR "tone(PIN_BEEP, freqmap[pgm_read_byte_near(notelist + i)]);\n"
+		INDENT_STR INDENT_STR "} else {\n"
+		INDENT_STR INDENT_STR INDENT_STR "tone(PIN_BEEP, freqmap[pgm_read_byte_near(notelist + i)], beeptimenow);\n"
+		INDENT_STR INDENT_STR "}\n"
+		INDENT_STR INDENT_STR "delay(sleeptimenow);\n"
+		INDENT_STR "}\n"
+		INDENT_STR "while (true) delay(1000);\n"
 		"}\n\n"
 	);
 
